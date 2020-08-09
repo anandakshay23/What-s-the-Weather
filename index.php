@@ -5,25 +5,27 @@
   $error = "";
 
 
-  if($_GET["city"]) {
+    if ($_GET['city']) {
 
-    $_GET["city"] = str_replace(' ', '',$_GET["city"]);
+        $urlContents = file_get_contents("http://api.openweathermap.org/data/2.5/weather?q=".urlencode($_GET['city'])."&appid=7ad812c256b8203c31a75b3f4a9f79e8");
 
-    $file = "https://www.weather-forecast.com/locations/".$_GET["city"]."/forecasts/latest";
-    $file_headers = @get_headers($file);
-    if(!$file_headers || $file_headers[0] == 'HTTP/1.1 404 Not Found') {
-        $error="The city didn't found";
-    }  else {
+        $weatherArray = json_decode($urlContents, true);
 
+        if ($weatherArray['cod'] == 200) {
 
-        $forcastPage = file_get_contents("https://www.weather-forecast.com/locations/".$_GET["city"]."/forecasts/latest");
+            $weather = "The weather in ".$_GET['city']." is currently '".$weatherArray['weather'][0]['description']."'. ";
 
-        $pageArray = explode('<img alt="left" class="scroll-button__arrow" height="32" src="https://www.weather-forecast.com/assets/base/icon-chevron-circle-left-2326989759101a2f7f2652154505a551.svg" width="32"></button><div class="b-forecast__wrapper b-forecast__wrapper--js" data-scroll-container=""><table class="b-forecast__table js-forecast-table"><thead><tr class="b-forecast__table-description b-forecast__hide-for-small days-summaries"><th></th><td class="b-forecast__table-description-cell--js" colspan="9"><div class="b-forecast__table-description-title"><h2>'.$_GET["city"].' Weather Today</h2> (1–3 days)</div><p class="b-forecast__table-description-content"><span class="phrase">',$forcastPage);
+            $tempInCelcius = intval($weatherArray['main']['temp'] - 273);
 
-        $weather  = explode('</span></p></td>',$pageArray[1]);
+            $weather .= " The temperature is ".$tempInCelcius."&deg;C and the wind speed is ".$weatherArray['wind']['speed']."m/s.";
+
+        } else {
+
+            $error = "Could not find city - please try again.";
+
+        }
 
     }
-  }
 
 
 
@@ -93,10 +95,10 @@
 
       <div id="weather"><?php
         if($weather[0]) {
-           echo '<div class="alert alert-success" role="alert">'.$weather[0].'</div>';
+           echo '<div class="alert alert-primary" role="alert">'.$weather.'</div>';
         }
         else if($error) {
-           echo '<div class="alert alert-success" role="danger">'.$error.'</div>';
+           echo '<div class="alert alert-danger" role="danger">'.$error.'</div>';
         }
       ?></div>
 
